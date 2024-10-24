@@ -7,7 +7,7 @@ class DiceApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Ludo App',
+      title: 'Dice Roller',
       theme: ThemeData(
         primarySwatch: Colors.blueGrey,
       ),
@@ -28,21 +28,17 @@ class _DiceScreenState extends State<DiceScreen> with TickerProviderStateMixin {
   int _diceNumber3 = 1;
   int _diceNumber4 = 1;
 
-  // Scores and current turn/round
-  int _score1 = 0;
-  int _score2 = 0;
-  int _score3 = 0;
-  int _score4 = 0;
-  int _round = 1;
-  int _currentTurn = 1;
+  int _currentTurn = 1; // Start with Player 1's turn
 
-  // Dice animation controllers
   late AnimationController _controller1;
   late Animation<double> _animation1;
+
   late AnimationController _controller2;
   late Animation<double> _animation2;
+
   late AnimationController _controller3;
   late Animation<double> _animation3;
+
   late AnimationController _controller4;
   late Animation<double> _animation4;
 
@@ -86,16 +82,13 @@ class _DiceScreenState extends State<DiceScreen> with TickerProviderStateMixin {
   // Roll dice based on the current turn
   void _rollDice() async {
     bool isSix = false;
-    int rolledNumber = 0;
 
     switch (_currentTurn) {
       case 1:
         _controller1.forward(from: 0);
         await Future.delayed(Duration(milliseconds: 300));
         setState(() {
-          rolledNumber = Random().nextInt(6) + 1;
-          _diceNumber1 = rolledNumber;
-          _score1 += rolledNumber;
+          _diceNumber1 = Random().nextInt(6) + 1;
           isSix = _diceNumber1 == 6;
         });
         break;
@@ -103,9 +96,7 @@ class _DiceScreenState extends State<DiceScreen> with TickerProviderStateMixin {
         _controller2.forward(from: 0);
         await Future.delayed(Duration(milliseconds: 300));
         setState(() {
-          rolledNumber = Random().nextInt(6) + 1;
-          _diceNumber2 = rolledNumber;
-          _score2 += rolledNumber;
+          _diceNumber2 = Random().nextInt(6) + 1;
           isSix = _diceNumber2 == 6;
         });
         break;
@@ -113,9 +104,7 @@ class _DiceScreenState extends State<DiceScreen> with TickerProviderStateMixin {
         _controller3.forward(from: 0);
         await Future.delayed(Duration(milliseconds: 300));
         setState(() {
-          rolledNumber = Random().nextInt(6) + 1;
-          _diceNumber3 = rolledNumber;
-          _score3 += rolledNumber;
+          _diceNumber3 = Random().nextInt(6) + 1;
           isSix = _diceNumber3 == 6;
         });
         break;
@@ -123,93 +112,34 @@ class _DiceScreenState extends State<DiceScreen> with TickerProviderStateMixin {
         _controller4.forward(from: 0);
         await Future.delayed(Duration(milliseconds: 300));
         setState(() {
-          rolledNumber = Random().nextInt(6) + 1;
-          _diceNumber4 = rolledNumber;
-          _score4 += rolledNumber;
+          _diceNumber4 = Random().nextInt(6) + 1;
           isSix = _diceNumber4 == 6;
         });
         break;
     }
 
-    // Check if 5 rounds are complete
-    if (_round >= 5) {
-      _declareWinner();
-    } else {
-      // Move to the next turn
-      if (!isSix) {
-        setState(() {
-          _currentTurn = (_currentTurn % 4) + 1; // Rotate between 1 to 4
-          if (_currentTurn == 1) {
-            _round++; // Increase round after player 4's turn
-          }
-        });
-      }
+    // If dice result is not 6, move to the next player's turn
+    if (!isSix) {
+      setState(() {
+        _currentTurn = (_currentTurn % 4) + 1; // Rotate between 1 to 4
+      });
     }
-  }
-
-  // Declare the winner
-  void _declareWinner() {
-    String winner;
-    int highestScore = max(_score1, max(_score2, max(_score3, _score4)));
-
-    if (highestScore == _score1) {
-      winner = "Player 1 Wins!";
-    } else if (highestScore == _score2) {
-      winner = "Player 2 Wins!";
-    } else if (highestScore == _score3) {
-      winner = "Player 3 Wins!";
-    } else {
-      winner = "Player 4 Wins!";
-    }
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text("Game Over"),
-        content: Text(winner),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _resetGame();
-            },
-            child: Text("Play Again"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Reset the game
-  void _resetGame() {
-    setState(() {
-      _diceNumber1 = 1;
-      _diceNumber2 = 1;
-      _diceNumber3 = 1;
-      _diceNumber4 = 1;
-      _score1 = 0;
-      _score2 = 0;
-      _score3 = 0;
-      _score4 = 0;
-      _round = 1;
-      _currentTurn = 1;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ludo App'),
-        backgroundColor: Colors.blueGrey,
+        title: Text('Dice Roller'),
+        backgroundColor: Colors.black, // Changed background color of AppBar to black
         titleTextStyle: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: Colors.black,
+          color: Colors.white, // Changed text color to white for better contrast
         ),
         centerTitle: true,
       ),
-      backgroundColor: Colors.blueGrey,
+      backgroundColor: Colors.grey, // Background color remains grey
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -218,17 +148,17 @@ class _DiceScreenState extends State<DiceScreen> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildDiceColumn(
-                  'Player 1 : $_diceNumber1 (Score: $_score1)',
-                  'images/dice-$_diceNumber1.png',
+                  'Player 1 : $_diceNumber1',
+                  'images/dice-$_diceNumber1.png', // Ensure these images are darker grey
                   _animation1,
-                  Colors.red,
+                  1,
                 ),
                 SizedBox(width: 50),
                 _buildDiceColumn(
-                  'Player 2 : $_diceNumber2 (Score: $_score2)',
-                  'images/dice-$_diceNumber2.png',
+                  'Player 2 : $_diceNumber2',
+                  'images/dice-$_diceNumber2.png', // Ensure these images are darker grey
                   _animation2,
-                  Colors.green,
+                  2,
                 ),
               ],
             ),
@@ -237,17 +167,17 @@ class _DiceScreenState extends State<DiceScreen> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _buildDiceColumn(
-                  'Player 3 : $_diceNumber3 (Score: $_score3)',
-                  'images/dice-$_diceNumber3.png',
+                  'Player 3 : $_diceNumber3',
+                  'images/dice-$_diceNumber3.png', // Ensure these images are darker grey
                   _animation3,
-                  Colors.blue,
+                  3,
                 ),
                 SizedBox(width: 50),
                 _buildDiceColumn(
-                  'Player 4 : $_diceNumber4 (Score: $_score4)',
-                  'images/dice-$_diceNumber4.png',
+                  'Player 4 : $_diceNumber4',
+                  'images/dice-$_diceNumber4.png', // Ensure these images are darker grey
                   _animation4,
-                  Colors.yellow,
+                  4,
                 ),
               ],
             ),
@@ -264,7 +194,7 @@ class _DiceScreenState extends State<DiceScreen> with TickerProviderStateMixin {
 
   // Build each dice column with player roll result, image, and roll button
   Widget _buildDiceColumn(
-      String text, String imagePath, Animation<double> animation, Color color) {
+      String text, String imagePath, Animation<double> animation, int playerNumber) {
     return Column(
       children: [
         Text(
@@ -277,16 +207,9 @@ class _DiceScreenState extends State<DiceScreen> with TickerProviderStateMixin {
           builder: (context, child) {
             return Transform.rotate(
               angle: animation.value,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  color: color.withOpacity(0.8),
-                ),
-                padding: EdgeInsets.all(5),
-                child: Image.asset(
-                  imagePath,
-                  height: 100,
-                ),
+              child: Image.asset(
+                imagePath,
+                height: 100,
               ),
             );
           },

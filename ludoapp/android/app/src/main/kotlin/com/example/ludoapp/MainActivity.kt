@@ -1,4 +1,4 @@
-package com.example.monii_ludo
+package com.example.ludoapp
 
 import io.flutter.embedding.android.FlutterActivity
 
