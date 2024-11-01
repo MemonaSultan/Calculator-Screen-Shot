@@ -27,6 +27,7 @@ class _TaskPageState extends State<TaskPage> {
   final _labelController = TextEditingController();
   String? _alertMode;
   List<String> _repeatDays = [];
+  String _repeatOption = "Custom";
 
   @override
   Widget build(BuildContext context) {
@@ -78,22 +79,44 @@ class _TaskPageState extends State<TaskPage> {
                 labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(height: 16), // Add space between Alert Mode and Repeat Days
-            Wrap(
-              spacing: 8.0,
-              children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) {
-                return ChoiceChip(
-                  label: Text(day),
-                  selected: _repeatDays.contains(day),
-                  onSelected: (selected) {
-                    setState(() {
-                      selected ? _repeatDays.add(day) : _repeatDays.remove(day);
-                    });
-                  },
-                );
+            SizedBox(height: 16),
+
+            // Repeat Option Selection
+            DropdownButtonFormField(
+              value: _repeatOption,
+              onChanged: (value) {
+                setState(() => _repeatOption = value as String);
+              },
+              items: ['Two-day weekend', 'One-day or two-day weekend', 'Shift system', 'Custom'].map((option) {
+                return DropdownMenuItem(value: option, child: Text(option));
               }).toList(),
+              decoration: InputDecoration(
+                labelText: 'Repeat Option',
+                labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
-            SizedBox(height: 20), // Add space between Repeat Days and Save Task button
+
+            SizedBox(height: 16),
+
+            // Customize Reminder Cycle
+            if (_repeatOption == 'Custom')
+              Wrap(
+                spacing: 8.0,
+                children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) {
+                  return ChoiceChip(
+                    label: Text(day),
+                    selected: _repeatDays.contains(day),
+                    onSelected: (selected) {
+                      setState(() {
+                        selected ? _repeatDays.add(day) : _repeatDays.remove(day);
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+
+            SizedBox(height: 20),
+
             ElevatedButton(
               onPressed: _saveTask,
               child: Text('Save Task'),
@@ -112,6 +135,7 @@ class _TaskPageState extends State<TaskPage> {
       'repeatDays': _repeatDays.join(', '),
       'alertMode': _alertMode,
       'label': _labelController.text,
+      'repeatOption': _repeatOption,
     };
 
     // Insert task to the database
@@ -129,6 +153,7 @@ class _TaskPageState extends State<TaskPage> {
     setState(() {
       _alertMode = null;
       _repeatDays.clear();
+      _repeatOption = "Custom";
     });
   }
 }
