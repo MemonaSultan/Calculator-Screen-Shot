@@ -32,21 +32,53 @@ class _TaskPageState extends State<TaskPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Task Management')),
-      body: Padding(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue, Colors.pink, Colors.grey],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            stops: [0.33, 0.66, 1.0],
+          ),
+        ),
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            TextField(controller: _nameController, decoration: InputDecoration(labelText: 'Task Name')),
-            TextField(controller: _timeController, decoration: InputDecoration(labelText: 'Time (HH:MM)')),
-            TextField(controller: _labelController, decoration: InputDecoration(labelText: 'Label')),
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Task Name',
+                labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+            TextField(
+              controller: _timeController,
+              decoration: InputDecoration(
+                labelText: 'Time (HH:MM)',
+                labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+            TextField(
+              controller: _labelController,
+              decoration: InputDecoration(
+                labelText: 'Label',
+                labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
             DropdownButtonFormField(
               value: _alertMode,
-              onChanged: (value) { setState(() => _alertMode = value as String); },
+              onChanged: (value) {
+                setState(() => _alertMode = value as String);
+              },
               items: ['Vibrate', 'Sound', 'Silent'].map((mode) {
                 return DropdownMenuItem(value: mode, child: Text(mode));
               }).toList(),
-              decoration: InputDecoration(labelText: 'Alert Mode'),
+              decoration: InputDecoration(
+                labelText: 'Alert Mode',
+                labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
+            SizedBox(height: 16), // Add space between Alert Mode and Repeat Days
             Wrap(
               spacing: 8.0,
               children: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) {
@@ -61,6 +93,7 @@ class _TaskPageState extends State<TaskPage> {
                 );
               }).toList(),
             ),
+            SizedBox(height: 20), // Add space between Repeat Days and Save Task button
             ElevatedButton(
               onPressed: _saveTask,
               child: Text('Save Task'),
@@ -72,6 +105,7 @@ class _TaskPageState extends State<TaskPage> {
   }
 
   Future<void> _saveTask() async {
+    // Create the task data
     final task = {
       'name': _nameController.text,
       'time': _timeController.text,
@@ -79,7 +113,22 @@ class _TaskPageState extends State<TaskPage> {
       'alertMode': _alertMode,
       'label': _labelController.text,
     };
+
+    // Insert task to the database
     await DBHelper.instance.insertTask(task);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Task Saved')));
+
+    // Show SnackBar message
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Task Saved'))
+    );
+
+    // Clear the form fields after saving
+    _nameController.clear();
+    _timeController.clear();
+    _labelController.clear();
+    setState(() {
+      _alertMode = null;
+      _repeatDays.clear();
+    });
   }
 }
