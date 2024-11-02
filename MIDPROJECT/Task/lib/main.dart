@@ -28,7 +28,7 @@ class HomePage extends StatelessWidget {
           children: [
             // Displaying the image
             Image.asset(
-              'Image/alarm.png', // Replace with your image path
+              'Image/Image.png', // Replace with your image path
               width: 200, // Adjust the width as needed
               height: 200, // Adjust the height as needed
             ),
@@ -65,6 +65,19 @@ class _TaskPageState extends State<TaskPage> {
 
   // List to hold selected days
   List<String> _repeatDays = []; // Store selected days
+
+  String? _alertMode;
+  String? _selectedRingtone;
+  int _snoozeTime = 5;
+
+  // Sample list of ringtones
+  final List<String> _ringtones = [
+    'Default Ringtone',
+    'Ringtone 1',
+    'Ringtone 2',
+    'Ringtone 3',
+    'Ringtone 4',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -107,24 +120,35 @@ class _TaskPageState extends State<TaskPage> {
 
             SizedBox(height: 16),
 
-            // Repeat Option Dropdown
-            DropdownButtonFormField(
-              value: _repeatOption,
-              onChanged: (value) {
-                setState(() => _repeatOption = value as String);
+            // Repeat Option Icon
+            GestureDetector(
+              onTap: () {
+                // Navigate to Repeat Options Page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => RepeatOptionPage(
+                    onSelected: (option) {
+                      setState(() {
+                        _repeatOption = option;
+                      });
+                    },
+                    repeatDays: _repeatDays,
+                    onDaysChanged: (days) {
+                      setState(() {
+                        _repeatDays = days;
+                      });
+                    },
+                  )),
+                );
               },
-              items: [
-                'Two-day weekend',
-                'One-day or two-day weekend',
-                'Shift system',
-                'Custom',
-              ].map((option) {
-                return DropdownMenuItem(value: option, child: Text(option));
-              }).toList(),
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.repeat, color: Colors.white),
-                labelText: 'Repeat Option',
-                labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              child: Row(
+                children: [
+                  Icon(Icons.repeat, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Repeat Option: ', style: TextStyle(color: Colors.white)),
+                  SizedBox(width: 8), // Space before days display
+                  Text(_repeatDays.join(', '), style: TextStyle(color: Colors.white)), // Show selected days
+                ],
               ),
             ),
 
@@ -170,54 +194,8 @@ class _TaskPageState extends State<TaskPage> {
               ],
             ),
 
-            SizedBox(height: 20), // Space before the settings button
+            SizedBox(height: 20), // Space before settings options
 
-            // Navigate to Settings Page
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SettingsPage()),
-                );
-              },
-              child: Text('Go to Settings'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Settings Page for ringtone, alert mode, and snooze time
-class SettingsPage extends StatefulWidget {
-  @override
-  _SettingsPageState createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<SettingsPage> {
-  String? _alertMode;
-  String? _selectedRingtone;
-  int _snoozeTime = 5;
-
-  // Sample list of ringtones
-  final List<String> _ringtones = [
-    'Default Ringtone',
-    'Ringtone 1',
-    'Ringtone 2',
-    'Ringtone 3',
-    'Ringtone 4',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Settings')),
-      body: Container(
-        color: Colors.grey,
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
             // Alert Mode Dropdown with Icon
             DropdownButtonFormField(
               value: _alertMode,
@@ -263,7 +241,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
 
-            SizedBox(height: 16),
+            SizedBox(height: 16), // Space between alert mode and ringtone selection
 
             // Ringtone Selection Row
             Row(
@@ -334,6 +312,57 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         );
       },
+    );
+  }
+}
+
+// Repeat Option Page
+class RepeatOptionPage extends StatelessWidget {
+  final Function(String) onSelected;
+  final List<String> repeatDays;
+  final Function(List<String>) onDaysChanged;
+
+  RepeatOptionPage({required this.onSelected, required this.repeatDays, required this.onDaysChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Select Repeat Option')),
+      body: Center(
+        child: ListView(
+          children: [
+            // Options aligned to the top
+            ListTile(
+              title: Text('Two-Day Weekend'),
+              onTap: () {
+                onSelected('Two-Day Weekend');
+                // Do not pop the context
+              },
+            ),
+            ListTile(
+              title: Text('One-Day Weekend'),
+              onTap: () {
+                onSelected('One-Day Weekend');
+                // Do not pop the context
+              },
+            ),
+            ListTile(
+              title: Text('Shift System'),
+              onTap: () {
+                onSelected('Shift System');
+                // Do not pop the context
+              },
+            ),
+            ListTile(
+              title: Text('Custom'),
+              onTap: () {
+                onSelected('Custom');
+                // Do not pop the context
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
