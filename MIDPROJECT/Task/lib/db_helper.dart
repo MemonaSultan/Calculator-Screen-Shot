@@ -28,7 +28,9 @@ class DBHelper {
         time TEXT NOT NULL,
         repeatDays TEXT,
         alertMode TEXT,
-        label TEXT
+        label TEXT,
+        ringtone TEXT,
+        snoozeTime INTEGER
       )
     ''';
     await db.execute(taskTable);
@@ -42,5 +44,15 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getTasks() async {
     final db = await instance.database;
     return await db.query('tasks');
+  }
+
+  Future<void> deleteTask(int id) async {
+    final db = await instance.database;
+    await db.delete('tasks', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> updateTask(int id, Map<String, dynamic> task) async {
+    final db = await instance.database;
+    await db.update('tasks', task, where: 'id = ?', whereArgs: [id]);
   }
 }
