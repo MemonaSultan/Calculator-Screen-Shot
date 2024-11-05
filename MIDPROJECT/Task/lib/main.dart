@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'db_helper.dart'; // Ensure you have this file for database handling.
 
 void main() {
   runApp(TaskManagementApp());
@@ -26,16 +25,14 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Displaying the image
             Image.asset(
               'Image/Image.png', // Replace with your image path
-              width: 200, // Adjust the width as needed
-              height: 200, // Adjust the height as needed
+              width: 200,
+              height: 200,
             ),
-            SizedBox(height: 20), // Space between image and button
+            SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () {
-                // Navigate to TaskPage when button is pressed
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => TaskPage()),
@@ -62,15 +59,11 @@ class _TaskPageState extends State<TaskPage> {
   final _timeController = TextEditingController();
   final _labelController = TextEditingController();
   String _repeatOption = "Custom";
-
-  // List to hold selected days
-  List<String> _repeatDays = []; // Store selected days
-
+  List<String> _repeatDays = [];
   String? _alertMode;
   String? _selectedRingtone;
   int _snoozeTime = 5;
 
-  // Sample list of ringtones
   final List<String> _ringtones = [
     'Default Ringtone',
     'Ringtone 1',
@@ -82,13 +75,47 @@ class _TaskPageState extends State<TaskPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Task Management')),
+      appBar: AppBar(
+        title: Text('Task Management'),
+      ),
       body: Container(
         color: Colors.grey,
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            // Task Name Field with Icon
+            SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Centered Add Alarm Button
+                ElevatedButton(
+                  onPressed: () {
+                    // Handle Add Alarm action
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Alarm is set successfully!')),
+                    );
+                  },
+                  child: Text('Add Alarm'),
+                ),
+                // Navigate to SaveTaskPage with task details
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SaveTaskPage(
+                          taskName: _nameController.text,
+                          taskTime: _timeController.text,
+                          taskLabel: _labelController.text,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Text('Save Task'),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -97,18 +124,14 @@ class _TaskPageState extends State<TaskPage> {
                 labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-
-            // Time Field with Icon
             TextField(
               controller: _timeController,
               decoration: InputDecoration(
                 prefixIcon: Icon(Icons.access_time, color: Colors.white),
-                labelText: 'Time (HH:MM:sec)',
+                labelText: 'Time (HH:MM:SS)',
                 labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-
-            // Label Field with Icon
             TextField(
               controller: _labelController,
               decoration: InputDecoration(
@@ -117,28 +140,27 @@ class _TaskPageState extends State<TaskPage> {
                 labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-
             SizedBox(height: 16),
-
-            // Repeat Option Icon
             GestureDetector(
               onTap: () {
-                // Navigate to Repeat Options Page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => RepeatOptionPage(
-                    onSelected: (option) {
-                      setState(() {
-                        _repeatOption = option;
-                      });
-                    },
-                    repeatDays: _repeatDays,
-                    onDaysChanged: (days) {
-                      setState(() {
-                        _repeatDays = days;
-                      });
-                    },
-                  )),
+                  MaterialPageRoute(
+                    builder: (context) => RepeatOptionPage(
+                      onSelected: (option) {
+                        setState(() {
+                          _repeatOption = option;
+                          _updateRepeatDays(option);
+                        });
+                      },
+                      repeatDays: _repeatDays,
+                      onDaysChanged: (days) {
+                        setState(() {
+                          _repeatDays = days;
+                        });
+                      },
+                    ),
+                  ),
                 );
               },
               child: Row(
@@ -146,15 +168,12 @@ class _TaskPageState extends State<TaskPage> {
                   Icon(Icons.repeat, color: Colors.white),
                   SizedBox(width: 8),
                   Text('Repeat Option: ', style: TextStyle(color: Colors.white)),
-                  SizedBox(width: 8), // Space before days display
-                  Text(_repeatDays.join(', '), style: TextStyle(color: Colors.white)), // Show selected days
+                  SizedBox(width: 8),
+                  Text(_repeatDays.isNotEmpty ? _repeatDays.join(', ') : 'None', style: TextStyle(color: Colors.white)),
                 ],
               ),
             ),
-
-            SizedBox(height: 20), // Space before days selection
-
-            // Customize Reminder Cycle with Day Chips and Icons
+            SizedBox(height: 20),
             if (_repeatOption == 'Custom')
               Wrap(
                 spacing: 8.0,
@@ -172,31 +191,7 @@ class _TaskPageState extends State<TaskPage> {
                   );
                 }).toList(),
               ),
-
-            SizedBox(height: 20), // Space before alarm buttons
-
-            // Alarm Done and Alarm Cancel Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    // Handle Alarm Done action
-                  },
-                  child: Text('Alarm Done'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // Handle Alarm Cancel action
-                  },
-                  child: Text('Alarm Cancel'),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 20), // Space before settings options
-
-            // Alert Mode Dropdown with Icon
+            SizedBox(height: 20),
             DropdownButtonFormField(
               value: _alertMode,
               onChanged: (value) {
@@ -240,10 +235,7 @@ class _TaskPageState extends State<TaskPage> {
                 labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
-
-            SizedBox(height: 16), // Space between alert mode and ringtone selection
-
-            // Ringtone Selection Row
+            SizedBox(height: 10),
             Row(
               children: [
                 Icon(Icons.ring_volume, color: Colors.white),
@@ -256,10 +248,7 @@ class _TaskPageState extends State<TaskPage> {
                 ),
               ],
             ),
-
-            SizedBox(height: 16), // Space between ringtone and snooze option
-
-            // Snooze Time Setting Row with Slider
+            SizedBox(height: 16),
             Row(
               children: [
                 Icon(Icons.snooze, color: Colors.white),
@@ -281,37 +270,100 @@ class _TaskPageState extends State<TaskPage> {
                 ),
               ],
             ),
+            Spacer(),
           ],
         ),
       ),
     );
   }
 
-  // Function to handle ringtone selection
+  void _updateRepeatDays(String option) {
+    if (option == 'Two-Day Weekly') {
+      _repeatDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']; // Select Monday to Friday
+    } else if (option == 'One-Day Weekly or Two-Day Weekly') {
+      _repeatDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; // Select Monday to Saturday
+    } else {
+      _repeatDays.clear(); // Clear the selection for other options
+    }
+  }
+
   void _selectRingtone() async {
-    // Show the ringtone selection dialog
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text('Select Ringtone'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: _ringtones.map((ringtone) {
-                return ListTile(
-                  title: Text(ringtone),
-                  onTap: () {
-                    setState(() {
-                      _selectedRingtone = ringtone; // Update selected ringtone
-                    });
-                    Navigator.pop(context); // Close the dialog
-                  },
-                );
-              }).toList(),
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _ringtones.map((ringtone) {
+              return ListTile(
+                title: Text(ringtone),
+                leading: Icon(Icons.music_note),
+                onTap: () {
+                  setState(() {
+                    _selectedRingtone = ringtone;
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
           ),
         );
       },
+    );
+  }
+}
+
+// Save Task Page showing task details and actions
+class SaveTaskPage extends StatelessWidget {
+  final String taskName;
+  final String taskTime;
+  final String taskLabel;
+
+  const SaveTaskPage({
+    Key? key,
+    required this.taskName,
+    required this.taskTime,
+    required this.taskLabel,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Save Task')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Task Name: $taskName', style: TextStyle(fontSize: 20)),
+            Text('Task Time: $taskTime', style: TextStyle(fontSize: 20)),
+            Text('Task Label: $taskLabel', style: TextStyle(fontSize: 20)),
+            Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    // Handle Edit Task
+                    Navigator.pop(context);
+                    // You can also add your editing logic here
+                  },
+                  child: Text('Edit Task'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    // Handle Delete Task
+                    Navigator.pop(context);
+                    // You can add your deletion logic here
+                  },
+                  child: Text('Delete Task'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -322,46 +374,55 @@ class RepeatOptionPage extends StatelessWidget {
   final List<String> repeatDays;
   final Function(List<String>) onDaysChanged;
 
-  RepeatOptionPage({required this.onSelected, required this.repeatDays, required this.onDaysChanged});
+  const RepeatOptionPage({
+    Key? key,
+    required this.onSelected,
+    required this.repeatDays,
+    required this.onDaysChanged,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Select Repeat Option')),
-      body: Center(
-        child: ListView(
-          children: [
-            // Options aligned to the top
-            ListTile(
-              title: Text('Two-Day Weekend'),
-              onTap: () {
-                onSelected('Two-Day Weekend');
-                // Do not pop the context
-              },
-            ),
-            ListTile(
-              title: Text('One-Day Weekend'),
-              onTap: () {
-                onSelected('One-Day Weekend');
-                // Do not pop the context
-              },
-            ),
-            ListTile(
-              title: Text('Shift System'),
-              onTap: () {
-                onSelected('Shift System');
-                // Do not pop the context
-              },
-            ),
-            ListTile(
-              title: Text('Custom'),
-              onTap: () {
-                onSelected('Custom');
-                // Do not pop the context
-              },
-            ),
-          ],
-        ),
+      appBar: AppBar(title: Text('Repeat Options')),
+      body: ListView(
+        children: [
+          ListTile(
+            title: Text('No Repeat'),
+            onTap: () {
+              onSelected('No Repeat');
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Daily'),
+            onTap: () {
+              onSelected('Daily');
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Weekly'),
+            onTap: () {
+              onSelected('Weekly');
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Monthly'),
+            onTap: () {
+              onSelected('Monthly');
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            title: Text('Custom'),
+            onTap: () {
+              onSelected('Custom');
+              Navigator.pop(context);
+            },
+          ),
+        ],
       ),
     );
   }
