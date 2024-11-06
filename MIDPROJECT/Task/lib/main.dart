@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(TaskManagementApp());
@@ -15,7 +17,6 @@ class TaskManagementApp extends StatelessWidget {
   }
 }
 
-// Home Page with "Start Task" button and an image
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -90,7 +91,6 @@ class HomePage extends StatelessWidget {
   }
 }
 
-// Task Management Page with form and controls
 class TaskPage extends StatefulWidget {
   @override
   _TaskPageState createState() => _TaskPageState();
@@ -108,14 +108,20 @@ class _TaskPageState extends State<TaskPage> {
   List<Task> _tasks = [];
 
   TimeOfDay? _selectedTime;
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
-  final List<String> _ringtones = [
-    'Default Ringtone',
-    'Ringtone 1',
-    'Ringtone 2',
-    'Ringtone 3',
-    'Ringtone 4',
+  final List<Map<String, String>> _ringtones = [
+    {'name': 'digital_trills', 'path': 'assets/ringtones/digital_trills.mp3'},
+    {'name': 'german 1', 'path': 'assets/ringtones/german_bell.mp3'},
+    {'name': 'stacked 2', 'path': 'assets/ringtones/stacked.mp3'},
+    {'name': 'twinkling 3', 'path': 'assets/ringtones/twinkling.mp3'},
   ];
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +197,7 @@ class _TaskPageState extends State<TaskPage> {
                   SizedBox(width: 8),
                   Text('Repeat Option: ', style: TextStyle(color: Colors.white)),
                   SizedBox(width: 8),
-                  Text(_repeatDays.isNotEmpty ? _repeatDays.join(', ') : 'None', style: TextStyle(color: Colors.white)),
+                  Text(_repeatDays.isNotEmpty ? _repeatDays.join(', ') : '', style: TextStyle(color: Colors.white)),
                 ],
               ),
             ),
@@ -266,12 +272,12 @@ class _TaskPageState extends State<TaskPage> {
                 IconButton(
                   icon: Icon(Icons.home, color: Colors.white),
                   onPressed: () {
-                    Navigator.pop(context); // Navigate back to Home
+                    Navigator.pop(context);
                   },
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Create a new task
+                    // Code to create a new task and handle task functionality.
                     if (_nameController.text.isNotEmpty && _selectedTime != null) {
                       setState(() {
                         Task newTask = Task(
@@ -281,22 +287,16 @@ class _TaskPageState extends State<TaskPage> {
                           label: _labelController.text,
                         );
                         if (_repeatOption == "Custom") {
-                          // Add to repeated tasks
                           _tasks.add(newTask);
                           _totalTasksCount++;
                         } else {
-                          // Add to today tasks
                           _tasks.add(newTask);
                           _totalTasksCount++;
                         }
                       });
-
-                      // Navigate to the task details page
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => TaskDetailPage(task: _tasks.last),
-                        ),
+                        MaterialPageRoute(builder: (context) => TodayTaskPage()),
                       );
                     }
                   },
@@ -310,80 +310,164 @@ class _TaskPageState extends State<TaskPage> {
     );
   }
 
-  // Update the repeat days based on the repeat option
-  void _updateRepeatDays(String option) {
-    setState(() {
-      if (option == 'Weekly') {
-        _repeatDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      } else if (option == 'Bi-Weekly') {
-        _repeatDays = ['Mon', 'Wed', 'Fri'];
-      } else {
-        _repeatDays = [];
-      }
-    });
-  }
-
-  // Select the time for the task
   void _selectTime() async {
-    TimeOfDay? time = await showTimePicker(
+    final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: _selectedTime ?? TimeOfDay.now(),
+      initialTime: TimeOfDay.now(),
     );
-    if (time != null) {
+    if (picked != null && picked != _selectedTime) {
       setState(() {
-        _selectedTime = time;
+        _selectedTime = picked;
       });
     }
   }
 
-  // Select a ringtone
   void _selectRingtone() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Select Ringtone'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: _ringtones.map((ringtone) {
-              return ListTile(
-                title: Text(ringtone),
-                onTap: () {
-                  setState(() {
-                    _selectedRingtone = ringtone;
-                  });
-                  Navigator.pop(context);
-                },
-              );
-            }).toList(),
-          ),
+      builder: (context) {
+        return ListView.builder(
+          itemCount: _ringtones.length,
+          itemBuilder: (context, index) {
+            final ringtone = _ringtones[index];
+            return ListTile(
+              title: Text(ringtone['name']!),
+              onTap: () async {
+                _audioPlayer.stop();
+                await _audioPlayer.play(ringtone['path']!, isLocal: true);
+                setState(() {
+                  _selectedRingtone = ringtone['name'];
+                });
+              },
+            );
+          },
         );
       },
     );
   }
+
+  void _updateRepeatDays(String option) {
+    if (option == 'Daily') {
+      _repeatDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    } else if (option == 'Bi-weekly') {
+      _repeatDays = ['Sun', 'Tue', 'Thu', 'Sat'];
+    } else {
+      _repeatDays = [];
+    }
+  }
 }
 
-// Task Details Page
-class TaskDetailPage extends StatelessWidget {
-  final Task task;
+class RepeatOptionPage extends StatefulWidget {
+  final ValueChanged<String> onSelected;
+  final ValueChanged<List<String>> onDaysChanged;
+  final List<String> repeatDays;
 
-  TaskDetailPage({required this.task});
+  RepeatOptionPage({
+    required this.onSelected,
+    required this.repeatDays,
+    required this.onDaysChanged,
+  });
+
+  @override
+  _RepeatOptionPageState createState() => _RepeatOptionPageState();
+}
+
+class _RepeatOptionPageState extends State<RepeatOptionPage> {
+  final List<String> _days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  String _selectedOption = 'Custom';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Task Details')),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Task Name: ${task.name}', style: TextStyle(fontSize: 18)),
-            Text('Time: ${task.time}', style: TextStyle(fontSize: 18)),
-            Text('Label: ${task.label}', style: TextStyle(fontSize: 18)),
-          ],
-        ),
+      appBar: AppBar(title: Text('Repeat Options')),
+      body: Column(
+        children: [
+          ListTile(
+            title: Text('Daily'),
+            leading: Radio<String>(
+              value: 'Daily',
+              groupValue: _selectedOption,
+              onChanged: (value) {
+                setState(() => _selectedOption = value!);
+                widget.onSelected('value');
+                widget.onDaysChanged(_days);
+              },
+            ),
+          ),
+          ListTile(
+            title: Text('Bi-weekly'),
+            leading: Radio<String>(
+              value: 'Bi-weekly',
+              groupValue: _selectedOption,
+              onChanged: (value) {
+                setState(() => _selectedOption = value!);
+                widget.onSelected('value');
+                widget.onDaysChanged(['Sun', 'Tue', 'Thu', 'Sat']);
+              },
+            ),
+          ),
+          ListTile(
+            title: Text('Custom'),
+            leading: Radio<String>(
+              value: 'Custom',
+              groupValue: _selectedOption,
+              onChanged: (value) {
+                setState(() => _selectedOption = value!);
+                widget.onSelected('value');
+                widget.onDaysChanged([]);
+              },
+            ),
+          ),
+          if (_selectedOption == 'Custom')
+            Wrap(
+              spacing: 8,
+              children: _days
+                  .map((day) => ChoiceChip(
+                label: Text(day),
+                selected: widget.repeatDays.contains(day),
+                onSelected: (isSelected) {
+                  setState(() {
+                    isSelected
+                        ? widget.repeatDays.add(day)
+                        : widget.repeatDays.remove(day);
+                  });
+                  widget.onDaysChanged(widget.repeatDays);
+                },
+              ))
+                  .toList(),
+            ),
+        ],
       ),
+    );
+  }
+}
+
+class TodayTaskPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Today’s Tasks')),
+      body: Center(child: Text('Tasks for today will be displayed here')),
+    );
+  }
+}
+
+class CompletedTaskPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Completed Tasks')),
+      body: Center(child: Text('Completed tasks will be displayed here')),
+    );
+  }
+}
+
+class RepeatedTaskPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Repeated Tasks')),
+      body: Center(child: Text('Repeated tasks will be displayed here')),
     );
   }
 }
@@ -395,78 +479,4 @@ class Task {
   final String label;
 
   Task({required this.id, required this.name, required this.time, required this.label});
-}
-
-class RepeatOptionPage extends StatelessWidget {
-  final Function(String) onSelected;
-  final Function(List<String>) onDaysChanged;
-  final List<String> repeatDays;
-
-  RepeatOptionPage({required this.onSelected, required this.onDaysChanged, required this.repeatDays});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Repeat Option')),
-      body: Column(
-        children: [
-          // Weekly, Bi-weekly, and Custom options
-          ListTile(
-            title: Text('Weekly'),
-            onTap: () {
-              onSelected('Weekly');
-              onDaysChanged(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text('Bi-Weekly'),
-            onTap: () {
-              onSelected('Bi-Weekly');
-              onDaysChanged(['Mon', 'Wed', 'Fri']);
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text('Custom'),
-            onTap: () {
-              onSelected('Custom');
-              onDaysChanged([]);
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class TodayTaskPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Today Tasks')),
-      body: Center(child: Text('Tasks for Today')),
-    );
-  }
-}
-
-class CompletedTaskPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Completed Tasks')),
-      body: Center(child: Text('Completed Tasks')),
-    );
-  }
-}
-
-class RepeatedTaskPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Repeated Tasks')),
-      body: Center(child: Text('Repeated Tasks')),
-    );
-  }
 }
