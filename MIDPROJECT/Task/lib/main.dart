@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(TaskManagementApp());
-}
-
 // Task model for managing task details
 class Task {
   String title;
@@ -28,8 +24,9 @@ class Task {
 // TodayTaskPage with Add Task functionality and Delete Task
 class TodayTaskPage extends StatefulWidget {
   final Function(Task) onCompleteTask;
+  final Function(Task) onRepeatTask;
 
-  TodayTaskPage({required this.onCompleteTask});
+  TodayTaskPage({required this.onCompleteTask, required this.onRepeatTask});
 
   @override
   _TodayTaskPageState createState() => _TodayTaskPageState();
@@ -60,6 +57,11 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
         _tasks.add(newTask); // Add task to the list
         _currentTask = newTask; // Set the current task to show in the AppBar
       });
+
+      // If the task is marked as repeated, call onRepeatTask to move it to the RepeatedTasks page
+      if (_isRepeated) {
+        widget.onRepeatTask(newTask); // Move task to repeated tasks
+      }
 
       // Clear the form after saving the task
       _titleController.clear();
@@ -247,69 +249,131 @@ class CompletedTaskPage extends StatelessWidget {
 
 // Define the RepeatedTaskPage
 class RepeatedTaskPage extends StatelessWidget {
+  final List<Task> repeatedTasks;
+
+  RepeatedTaskPage({required this.repeatedTasks});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Repeated Tasks'),
       ),
-      body: Center(
-        child: Text('Display repeated tasks here'),
+      body: ListView.builder(
+        itemCount: repeatedTasks.length,
+        itemBuilder: (context, index) {
+          final task = repeatedTasks[index];
+          return ListTile(
+            title: Text(task.title),
+            subtitle: Text("${task.description}\n${task.time.hour}:${task.time.minute}"),
+          );
+        },
       ),
     );
   }
 }
 
 // Define the RepeatOptionPage for selecting repeat days
-class RepeatOptionPage extends StatefulWidget {
+class RepeatOptionPage extends StatelessWidget {
   final Function(List<String>) onDaysSelected;
 
   RepeatOptionPage({required this.onDaysSelected});
 
   @override
-  _RepeatOptionPageState createState() => _RepeatOptionPageState();
-}
-
-class _RepeatOptionPageState extends State<RepeatOptionPage> {
-  List<String> _selectedDays = [];
-
-  @override
   Widget build(BuildContext context) {
-    List<String> days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
+    List<String> repeatDays = [];
     return Scaffold(
-      appBar: AppBar(title: Text("Select Repeat Days")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Wrap(
-              spacing: 8.0,
-              children: days.map((day) {
-                return ChoiceChip(
-                  label: Text(day),
-                  selected: _selectedDays.contains(day),
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedDays.add(day);
-                      } else {
-                        _selectedDays.remove(day);
-                      }
-                      widget.onDaysSelected(_selectedDays); // Pass the selected days back
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("Done"),
-            ),
-          ],
-        ),
+      appBar: AppBar(
+        title: Text("Repeat Options"),
+      ),
+      body: Column(
+        children: [
+          CheckboxListTile(
+            title: Text("Monday"),
+            value: repeatDays.contains("Monday"),
+            onChanged: (bool? value) {
+              if (value == true) {
+                repeatDays.add("Monday");
+              } else {
+                repeatDays.remove("Monday");
+              }
+            },
+          ),
+          CheckboxListTile(
+            title: Text("Tuesday"),
+            value: repeatDays.contains("Tuesday"),
+            onChanged: (bool? value) {
+              if (value == true) {
+                repeatDays.add("Tuesday");
+              } else {
+                repeatDays.remove("Tuesday");
+              }
+            },
+          ),
+          CheckboxListTile(
+            title: Text("wednesday"),
+            value: repeatDays.contains("wednesday"),
+            onChanged: (bool? value) {
+              if (value == true) {
+                repeatDays.add("wednesday");
+              } else {
+                repeatDays.remove("wednesday");
+              }
+            },
+          ),
+          CheckboxListTile(
+            title: Text("Tursday"),
+            value: repeatDays.contains("Tursday"),
+            onChanged: (bool? value) {
+              if (value == true) {
+                repeatDays.add("Thursday");
+              } else {
+                repeatDays.remove("Thursday");
+              }
+            },
+          ),
+          CheckboxListTile(
+            title: Text("Friday"),
+            value: repeatDays.contains("Friday"),
+            onChanged: (bool? value) {
+              if (value == true) {
+                repeatDays.add("Friday");
+              } else {
+                repeatDays.remove("Friday");
+              }
+            },
+          ),
+          CheckboxListTile(
+            title: Text("Saturday"),
+            value: repeatDays.contains("Saturday"),
+            onChanged: (bool? value) {
+              if (value == true) {
+                repeatDays.add("Saturday");
+              } else {
+                repeatDays.remove("Saturday");
+              }
+            },
+          ),
+          CheckboxListTile(
+            title: Text("Sunday"),
+            value: repeatDays.contains("Sunday"),
+            onChanged: (bool? value) {
+              if (value == true) {
+                repeatDays.add("Sunday");
+              } else {
+                repeatDays.remove("Sunday");
+              }
+            },
+          ),
+          // Add more days as needed
+          ElevatedButton(
+            onPressed: () {
+              onDaysSelected(repeatDays);
+              Navigator.pop(context); // Go back after selecting days
+            },
+            child: Text("Save Repeat Days"),
+          ),
+        ],
       ),
     );
   }
@@ -322,12 +386,21 @@ class TaskManagementApp extends StatefulWidget {
 }
 
 class _TaskManagementAppState extends State<TaskManagementApp> {
-  int _currentIndex = 0;
+  List<Task> _todayTasks = [];
   List<Task> _completedTasks = [];
+  List<Task> _repeatedTasks = [];
+  int _currentIndex = 0;
 
-  void _addToCompletedTasks(Task task) {
+  void _onCompleteTask(Task task) {
     setState(() {
-      _completedTasks.add(task); // Add task to completed list
+      task.isCompleted = true;
+      _completedTasks.add(task);
+    });
+  }
+
+  void _onRepeatTask(Task task) {
+    setState(() {
+      _repeatedTasks.add(task);
     });
   }
 
@@ -336,13 +409,13 @@ class _TaskManagementAppState extends State<TaskManagementApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Task Management'),
+          title: Text('Task Management App'),
         ),
         body: _currentIndex == 0
-            ? TodayTaskPage(onCompleteTask: _addToCompletedTasks)
+            ? TodayTaskPage(onCompleteTask: _onCompleteTask, onRepeatTask: _onRepeatTask)
             : _currentIndex == 1
             ? CompletedTaskPage(completedTasks: _completedTasks)
-            : RepeatedTaskPage(),
+            : RepeatedTaskPage(repeatedTasks: _repeatedTasks),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
@@ -351,21 +424,16 @@ class _TaskManagementAppState extends State<TaskManagementApp> {
             });
           },
           items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.today),
-              label: 'Today',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.check_circle),
-              label: 'Completed',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.repeat),
-              label: 'Repeat Task', // Icon for Repeat Task
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.today), label: "Today"),
+            BottomNavigationBarItem(icon: Icon(Icons.check_circle), label: "Completed"),
+            BottomNavigationBarItem(icon: Icon(Icons.repeat), label: "Repeated"),
           ],
         ),
       ),
     );
   }
+}
+
+void main() {
+  runApp(TaskManagementApp());
 }
