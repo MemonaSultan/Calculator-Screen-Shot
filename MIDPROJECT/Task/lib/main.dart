@@ -1,14 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
-// Task model for managing task details
+void main() {
+  runApp(TaskManagementApp());
+}
+
+class TaskManagementApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: ThemeMode.system,
+      home: HomePage(),
+    );
+  }
+}
+
 class Task {
   String title;
   String description;
   DateTime time;
   bool isRepeated;
-  List<String> repeatDays; // List to store selected repeat days
-  bool isCompleted; // Track completion status
-  double progress; // Track task completion progress
+  List<String> repeatDays;
+  bool isCompleted;
+  double progress;
 
   Task({
     required this.title,
@@ -16,102 +36,148 @@ class Task {
     required this.time,
     this.isRepeated = false,
     this.repeatDays = const [],
-    this.isCompleted = false, // Task is initially not completed
-    this.progress = 0.0, // Initial progress is 0
+    this.isCompleted = false,
+    this.progress = 0.0,
   });
 }
 
-// TodayTaskPage with Add Task functionality and Delete Task
-class TodayTaskPage extends StatefulWidget {
-  final Function(Task) onCompleteTask;
-  final Function(Task) onRepeatTask;
-
-  TodayTaskPage({required this.onCompleteTask, required this.onRepeatTask});
-
+class HomePage extends StatefulWidget {
   @override
-  _TodayTaskPageState createState() => _TodayTaskPageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _TodayTaskPageState extends State<TodayTaskPage> {
+class _HomePageState extends State<HomePage> {
+  bool isDarkMode = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Task Manager'),
+        actions: [
+          IconButton(
+            icon: Icon(isDarkMode ? Icons.wb_sunny : Icons.nightlight_round),
+            onPressed: () {
+              setState(() {
+                isDarkMode = !isDarkMode;
+              });
+            },
+          ),
+        ],
+      ),
+      body: Center(
+        child: ElevatedButton(
+          child: Text('Go to Tasks'),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => TaskManagementPage()),
+            );
+          },
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {
+          // Add Task Functionality
+        },
+      ),
+    );
+  }
+}
+
+class TaskManagementPage extends StatefulWidget {
+  @override
+  _TaskManagementPageState createState() => _TaskManagementPageState();
+}
+
+class _TaskManagementPageState extends State<TaskManagementPage> {
+  final List<Task> tasks = [];
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   DateTime _selectedTime = DateTime.now();
   bool _isRepeated = false;
   List<String> _selectedDays = [];
-  List<Task> _tasks = []; // List to store tasks
-  Task? _currentTask; // Store the current task being edited
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
-  // Function to handle the "Save Task" button click
-  void _saveTask() {
+  @override
+  void initState() {
+    super.initState();
+    _initializeNotifications();
+  }
+
+  Future<void> _initializeNotifications() async {
+    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings settings = InitializationSettings(android: androidSettings);
+    await _notificationsPlugin.initialize(settings);
+  }
+
+  void _addTask() {
     if (_titleController.text.isNotEmpty && _descriptionController.text.isNotEmpty) {
       final newTask = Task(
         title: _titleController.text,
         description: _descriptionController.text,
         time: _selectedTime,
         isRepeated: _isRepeated,
-        repeatDays: _selectedDays, // Save the selected repeat days
-        isCompleted: false, // Task is initially not completed
-        progress: 0.0, // Initially 0% progress
+        repeatDays: _selectedDays,
       );
       setState(() {
-        _tasks.add(newTask); // Add task to the list
-        _currentTask = newTask; // Set the current task to show in the AppBar
+        tasks.add(newTask);
       });
 
-      // If the task is marked as repeated, call onRepeatTask to move it to the RepeatedTasks page
-      if (_isRepeated) {
-        widget.onRepeatTask(newTask); // Move task to repeated tasks
-      }
-
-      // Clear the form after saving the task
       _titleController.clear();
       _descriptionController.clear();
-      setState(() {
-        _selectedTime = DateTime.now();
-        _isRepeated = false;
-        _selectedDays.clear();
-      });
     }
   }
 
-  // Function to handle task deletion
-  void _deleteTask(int index) {
+  void _deleteTask(Task task) {
     setState(() {
-      _tasks.removeAt(index); // Remove the task at the given index
+      tasks.remove(task);
     });
   }
 
-  // Function to handle task completion
-  void _completeTask(Task task) {
+  void _editTask(Task task) {
+    _titleController.text = task.title;
+    _descriptionController.text = task.description;
     setState(() {
-      // Add the task to the completed tasks list
-      widget.onCompleteTask(task);
-      _tasks.remove(task); // Remove from today's task list
+      _selectedTime = task.time;
+      _isRepeated = task.isRepeated;
+      _selectedDays = task.repeatDays;
     });
   }
 
-  // Function to show time picker
-  Future<void> _pickTime() async {
-    final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: _selectedTime.hour, minute: _selectedTime.minute),
-    );
+  // Function to generate PDF
+  Future<void> _generatePdf() async {
+    final pdf = pw.Document();
 
-    if (pickedTime != null) {
-      setState(() {
-        _selectedTime = DateTime(
-          _selectedTime.year,
-          _selectedTime.month,
-          _selectedTime.day,
-          pickedTime.hour,
-          pickedTime.minute,
+    // Add the PDF content
+    pdf.addPage(pw.Page(
+      build: (pw.Context context) {
+        return pw.Column(
+          children: [
+            pw.Text('Task List', style: pw.TextStyle(fontSize: 30, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 20),
+            for (var task in tasks)
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Title: ${task.title}', style: pw.TextStyle(fontSize: 18)),
+                  pw.Text('Description: ${task.description}', style: pw.TextStyle(fontSize: 16)),
+                  pw.Text('Time: ${DateFormat('hh:mm a').format(task.time)}', style: pw.TextStyle(fontSize: 16)),
+                  pw.Text('Completed: ${task.isCompleted ? "Yes" : "No"}', style: pw.TextStyle(fontSize: 16)),
+                  pw.Divider(),
+                ],
+              ),
+          ],
         );
-      });
-    }
+      },
+    ));
+
+    // Print the PDF to the screen
+    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
   }
 
-  // Function to show bottom sheet with task details form
-  void _showAddTaskBottomSheet() {
+  void _showTaskBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -120,55 +186,50 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Task Title Text Field
               TextField(
                 controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: "Task Title",
-                ),
+                decoration: InputDecoration(labelText: 'Task Title'),
               ),
-              // Task Description Text Field
               TextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: "Task Description",
-                ),
+                decoration: InputDecoration(labelText: 'Task Description'),
               ),
-              // Time Picker
               ListTile(
-                title: Text("Pick Time"),
+                title: Text('Pick Time'),
                 subtitle: Text("${_selectedTime.hour}:${_selectedTime.minute}"),
-                onTap: _pickTime,
+                onTap: () async {
+                  final pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.fromDateTime(_selectedTime),
+                  );
+                  if (pickedTime != null) {
+                    setState(() {
+                      _selectedTime = DateTime(
+                        _selectedTime.year,
+                        _selectedTime.month,
+                        _selectedTime.day,
+                        pickedTime.hour,
+                        pickedTime.minute,
+                      );
+                    });
+                  }
+                },
               ),
-              // Repeat Option
               SwitchListTile(
-                title: Text("Repeat Task"),
+                title: Text('Repeat Task'),
                 value: _isRepeated,
-                onChanged: (bool value) {
+                onChanged: (value) {
                   setState(() {
                     _isRepeated = value;
-                    if (_isRepeated) {
-                      // Navigate to RepeatOptionPage when switching on
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RepeatOptionPage(
-                            onDaysSelected: (selectedDays) {
-                              setState(() {
-                                _selectedDays = selectedDays;
-                              });
-                            },
-                          ),
-                        ),
-                      );
-                    }
                   });
                 },
               ),
-              // Save Task Button
               ElevatedButton(
-                onPressed: _saveTask,
-                child: Text("Save Task"),
+                onPressed: () {
+                  _addTask();
+                  Navigator.pop(context);
+                },
+                child: Text('Save Task'),
               ),
             ],
           ),
@@ -181,259 +242,75 @@ class _TodayTaskPageState extends State<TodayTaskPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Today Tasks'),
+        title: Text('Manage Tasks'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.picture_as_pdf),
+            onPressed: _generatePdf,  // Call PDF function on press
+          ),
+        ],
       ),
-      body: ListView.builder(
-        itemCount: _tasks.length,
-        itemBuilder: (context, index) {
-          final task = _tasks[index];
-          return ListTile(
-            title: Text(task.title),
-            subtitle: Text("${task.description}\n${task.time.hour}:${task.time.minute}"),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                task.isCompleted
-                    ? Icon(Icons.check, color: Colors.green) // Show check mark for completed task
-                    : IconButton(
-                  icon: Icon(Icons.check),
-                  onPressed: () {
-                    _completeTask(task); // Move the task to completed tasks
-                  },
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () {
-                    _deleteTask(index); // Delete the task when the delete icon is pressed
-                  },
-                ),
-              ],
+      body: Column(
+        children: [
+          ListTile(
+            title: Text('Completed Tasks'),
+            trailing: Icon(Icons.check),
+            onTap: () {
+              // Show Completed Tasks
+            },
+          ),
+          ListTile(
+            title: Text('Today\'s Tasks'),
+            trailing: Icon(Icons.today),
+            onTap: () {
+              // Show Today's Tasks
+            },
+          ),
+          ListTile(
+            title: Text('Repeated Tasks'),
+            trailing: Icon(Icons.repeat),
+            onTap: () {
+              // Show Repeated Tasks
+            },
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                return ListTile(
+                  title: Text(task.title),
+                  subtitle: Text(task.description),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () {
+                          _editTask(task);
+                          _showTaskBottomSheet(context);
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          _deleteTask(task);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddTaskBottomSheet,
+        onPressed: () {
+          _showTaskBottomSheet(context);
+        },
         child: Icon(Icons.add),
       ),
     );
   }
-}
-
-// Define the CompletedTaskPage
-class CompletedTaskPage extends StatelessWidget {
-  final List<Task> completedTasks;
-
-  CompletedTaskPage({required this.completedTasks});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Completed Tasks'),
-      ),
-      body: ListView.builder(
-        itemCount: completedTasks.length,
-        itemBuilder: (context, index) {
-          final task = completedTasks[index];
-          return ListTile(
-            title: Text(task.title),
-            subtitle: Text("${task.description}\n${task.time.hour}:${task.time.minute}"),
-            trailing: Icon(Icons.check, color: Colors.green),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// Define the RepeatedTaskPage
-class RepeatedTaskPage extends StatelessWidget {
-  final List<Task> repeatedTasks;
-
-  RepeatedTaskPage({required this.repeatedTasks});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Repeated Tasks'),
-      ),
-      body: ListView.builder(
-        itemCount: repeatedTasks.length,
-        itemBuilder: (context, index) {
-          final task = repeatedTasks[index];
-          return ListTile(
-            title: Text(task.title),
-            subtitle: Text("${task.description}\n${task.time.hour}:${task.time.minute}"),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// Define the RepeatOptionPage for selecting repeat days
-class RepeatOptionPage extends StatelessWidget {
-  final Function(List<String>) onDaysSelected;
-
-  RepeatOptionPage({required this.onDaysSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    List<String> repeatDays = [];
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Repeat Options"),
-      ),
-      body: Column(
-        children: [
-          CheckboxListTile(
-            title: Text("Monday"),
-            value: repeatDays.contains("Monday"),
-            onChanged: (bool? value) {
-              if (value == true) {
-                repeatDays.add("Monday");
-              } else {
-                repeatDays.remove("Monday");
-              }
-            },
-          ),
-          CheckboxListTile(
-            title: Text("Tuesday"),
-            value: repeatDays.contains("Tuesday"),
-            onChanged: (bool? value) {
-              if (value == true) {
-                repeatDays.add("Tuesday");
-              } else {
-                repeatDays.remove("Tuesday");
-              }
-            },
-          ),
-          CheckboxListTile(
-            title: Text("wednesday"),
-            value: repeatDays.contains("wednesday"),
-            onChanged: (bool? value) {
-              if (value == true) {
-                repeatDays.add("wednesday");
-              } else {
-                repeatDays.remove("wednesday");
-              }
-            },
-          ),
-          CheckboxListTile(
-            title: Text("Tursday"),
-            value: repeatDays.contains("Tursday"),
-            onChanged: (bool? value) {
-              if (value == true) {
-                repeatDays.add("Thursday");
-              } else {
-                repeatDays.remove("Thursday");
-              }
-            },
-          ),
-          CheckboxListTile(
-            title: Text("Friday"),
-            value: repeatDays.contains("Friday"),
-            onChanged: (bool? value) {
-              if (value == true) {
-                repeatDays.add("Friday");
-              } else {
-                repeatDays.remove("Friday");
-              }
-            },
-          ),
-          CheckboxListTile(
-            title: Text("Saturday"),
-            value: repeatDays.contains("Saturday"),
-            onChanged: (bool? value) {
-              if (value == true) {
-                repeatDays.add("Saturday");
-              } else {
-                repeatDays.remove("Saturday");
-              }
-            },
-          ),
-          CheckboxListTile(
-            title: Text("Sunday"),
-            value: repeatDays.contains("Sunday"),
-            onChanged: (bool? value) {
-              if (value == true) {
-                repeatDays.add("Sunday");
-              } else {
-                repeatDays.remove("Sunday");
-              }
-            },
-          ),
-          // Add more days as needed
-          ElevatedButton(
-            onPressed: () {
-              onDaysSelected(repeatDays);
-              Navigator.pop(context); // Go back after selecting days
-            },
-            child: Text("Save Repeat Days"),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Main application class with BottomNavigationBar
-class TaskManagementApp extends StatefulWidget {
-  @override
-  _TaskManagementAppState createState() => _TaskManagementAppState();
-}
-
-class _TaskManagementAppState extends State<TaskManagementApp> {
-  List<Task> _todayTasks = [];
-  List<Task> _completedTasks = [];
-  List<Task> _repeatedTasks = [];
-  int _currentIndex = 0;
-
-  void _onCompleteTask(Task task) {
-    setState(() {
-      task.isCompleted = true;
-      _completedTasks.add(task);
-    });
-  }
-
-  void _onRepeatTask(Task task) {
-    setState(() {
-      _repeatedTasks.add(task);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Task Management App'),
-        ),
-        body: _currentIndex == 0
-            ? TodayTaskPage(onCompleteTask: _onCompleteTask, onRepeatTask: _onRepeatTask)
-            : _currentIndex == 1
-            ? CompletedTaskPage(completedTasks: _completedTasks)
-            : RepeatedTaskPage(repeatedTasks: _repeatedTasks),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.today), label: "Today"),
-            BottomNavigationBarItem(icon: Icon(Icons.check_circle), label: "Completed"),
-            BottomNavigationBarItem(icon: Icon(Icons.repeat), label: "Repeated"),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-void main() {
-  runApp(TaskManagementApp());
 }
