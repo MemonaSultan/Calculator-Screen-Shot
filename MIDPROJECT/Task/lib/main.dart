@@ -64,7 +64,8 @@ class HomePage extends StatelessWidget {
   void _showTaskBottomSheet(BuildContext context, {Task? task}) {
     final _titleController = TextEditingController(text: task?.title);
     final _descriptionController = TextEditingController(text: task?.description);
-    DateTime _selectedTime = task?.time ?? DateTime.now();
+    DateTime _selectedDate = task?.time ?? DateTime.now();
+    TimeOfDay _selectedTime = TimeOfDay.fromDateTime(_selectedDate);
     bool isRepeated = task?.isRepeated ?? false;
 
     showModalBottomSheet(
@@ -84,20 +85,36 @@ class HomePage extends StatelessWidget {
                 decoration: InputDecoration(labelText: 'Task Description'),
               ),
               ListTile(
+                title: Text('Pick Date'),
+                subtitle: Text("${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day}"),
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2101),
+                  );
+                  if (pickedDate != null) {
+                    _selectedDate = pickedDate;
+                  }
+                },
+              ),
+              ListTile(
                 title: Text('Pick Time'),
                 subtitle: Text("${_selectedTime.hour}:${_selectedTime.minute}"),
                 onTap: () async {
                   final pickedTime = await showTimePicker(
                     context: context,
-                    initialTime: TimeOfDay.fromDateTime(_selectedTime),
+                    initialTime: _selectedTime,
                   );
                   if (pickedTime != null) {
-                    _selectedTime = DateTime(
-                      _selectedTime.year,
-                      _selectedTime.month,
-                      _selectedTime.day,
-                      pickedTime.hour,
-                      pickedTime.minute,
+                    _selectedTime = pickedTime;
+                    _selectedDate = DateTime(
+                      _selectedDate.year,
+                      _selectedDate.month,
+                      _selectedDate.day,
+                      _selectedTime.hour,
+                      _selectedTime.minute,
                     );
                   }
                 },
@@ -114,7 +131,7 @@ class HomePage extends StatelessWidget {
                   final newTask = Task(
                     title: _titleController.text,
                     description: _descriptionController.text,
-                    time: _selectedTime,
+                    time: _selectedDate,
                     isRepeated: isRepeated,
                   );
 
@@ -318,10 +335,11 @@ class TaskListPage extends StatelessWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: Icon(Icons.check),
-                  onPressed: onMarkCompleted != null ? () => onMarkCompleted!(task) : null,
-                ),
+                if (onMarkCompleted != null)
+                  IconButton(
+                    icon: Icon(Icons.check),
+                    onPressed: () => onMarkCompleted!(task),
+                  ),
                 IconButton(
                   icon: Icon(Icons.edit),
                   onPressed: () => onEditTask(task),
