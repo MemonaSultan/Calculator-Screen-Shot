@@ -1,4 +1,4 @@
-# bmi
+# assignment_bmi
 
 A new Flutter project.
 
