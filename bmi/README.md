@@ -1,4 +1,4 @@
-# bmicalculator
+# bmi
 
 A new Flutter project.
 
