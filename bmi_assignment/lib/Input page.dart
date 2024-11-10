@@ -1,4 +1,54 @@
 import 'package:flutter/material.dart';
+import 'icontextfile.dart';
+
+// Define constants for active and deactive colors
+const Color activeColorMale = Color(0xFF1D83C7); // Corrected color code
+const Color activeColorFemale = Color(0xFF111328);
+const Color deactiveColor = Colors.black54;
+
+// Icon Widget Class
+class IconWidget extends StatelessWidget {
+  final IconData iconData;
+  final Color color;
+  final double size;
+  final VoidCallback onPressed;
+
+  IconWidget({
+    required this.iconData,
+    required this.color,
+    required this.size,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(iconData),
+      onPressed: onPressed,
+      iconSize: size,
+      color: color,
+    );
+  }
+}
+
+// Text Widget Class
+class TextWidget extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+
+  TextWidget({
+    required this.text,
+    required this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: style,
+    );
+  }
+}
 
 class BMICalculator extends StatefulWidget {
   @override
@@ -22,6 +72,7 @@ class _BMICalculatorState extends State<BMICalculator> {
     return Scaffold(
       appBar: AppBar(
         title: Text('BMI Calculator'),
+        backgroundColor: Colors.black26,
       ),
       body: Padding(
         padding: const EdgeInsets.all(36.0),
@@ -40,20 +91,25 @@ class _BMICalculatorState extends State<BMICalculator> {
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
                       decoration: BoxDecoration(
-                        color: selectedGender == 'Male' ? Colors.blueAccent : Colors.grey[300],
+                        color: selectedGender == 'Male' ? activeColorMale : deactiveColor,
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.male,
+                          IconWidget(
+                            iconData: Icons.male,
                             color: selectedGender == 'Male' ? Colors.white : Colors.black,
                             size: 30,
+                            onPressed: () {
+                              setState(() {
+                                selectedGender = 'Male';
+                              });
+                            },
                           ),
                           SizedBox(width: 10),
-                          Text(
-                            'Male',
+                          TextWidget(
+                            text: 'Male',
                             style: TextStyle(
                               fontSize: 22,
                               color: selectedGender == 'Male' ? Colors.white : Colors.black,
@@ -75,20 +131,25 @@ class _BMICalculatorState extends State<BMICalculator> {
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
                       decoration: BoxDecoration(
-                        color: selectedGender == 'Female' ? Colors.pinkAccent : Colors.grey[300],
+                        color: selectedGender == 'Female' ? activeColorFemale : deactiveColor,
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.female,
+                          IconWidget(
+                            iconData: Icons.female,
                             color: selectedGender == 'Female' ? Colors.white : Colors.black,
                             size: 30,
+                            onPressed: () {
+                              setState(() {
+                                selectedGender = 'Female';
+                              });
+                            },
                           ),
                           SizedBox(width: 10),
-                          Text(
-                            'Female',
+                          TextWidget(
+                            text: 'Female',
                             style: TextStyle(
                               fontSize: 22,
                               color: selectedGender == 'Female' ? Colors.white : Colors.black,
@@ -101,7 +162,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                 ),
               ],
             ),
-            SizedBox(height: 40),
+            SizedBox(height: 0),
 
             // Height input with custom increment/decrement icons inside the box
             Row(
@@ -109,7 +170,10 @@ class _BMICalculatorState extends State<BMICalculator> {
                 Expanded(
                   child: Column(
                     children: [
-                      Text('Height (cm)', style: TextStyle(fontSize: 18)),
+                      TextWidget(
+                        text: 'Height (cm)',
+                        style: TextStyle(fontSize: 18),
+                      ),
                       SizedBox(height: 10),
                       Container(
                         padding: EdgeInsets.symmetric(vertical: 10.0),
@@ -119,16 +183,16 @@ class _BMICalculatorState extends State<BMICalculator> {
                         ),
                         child: Row(
                           children: [
-                            IconButton(
-                              icon: Icon(Icons.remove_circle_outline),
+                            IconWidget(
+                              iconData: Icons.remove_circle_outline,
+                              color: Colors.blueAccent,
+                              size: 30,
                               onPressed: () {
                                 setState(() {
                                   int height = int.tryParse(heightController.text) ?? 0;
                                   heightController.text = (height - 1).toString();
                                 });
                               },
-                              iconSize: 30,
-                              color: Colors.blueAccent,
                             ),
                             Expanded(
                               child: TextField(
@@ -141,16 +205,16 @@ class _BMICalculatorState extends State<BMICalculator> {
                                 ),
                               ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.add_circle_outline),
+                            IconWidget(
+                              iconData: Icons.add_circle_outline,
+                              color: Colors.blueAccent,
+                              size: 30,
                               onPressed: () {
                                 setState(() {
                                   int height = int.tryParse(heightController.text) ?? 0;
                                   heightController.text = (height + 1).toString();
                                 });
                               },
-                              iconSize: 30,
-                              color: Colors.blueAccent,
                             ),
                           ],
                         ),
@@ -168,7 +232,10 @@ class _BMICalculatorState extends State<BMICalculator> {
                 Expanded(
                   child: Column(
                     children: [
-                      Text('Weight (kg)', style: TextStyle(fontSize: 18)),
+                      TextWidget(
+                        text: 'Weight (kg)',
+                        style: TextStyle(fontSize: 18),
+                      ),
                       SizedBox(height: 10),
                       Container(
                         padding: EdgeInsets.symmetric(vertical: 10.0),
@@ -178,16 +245,16 @@ class _BMICalculatorState extends State<BMICalculator> {
                         ),
                         child: Row(
                           children: [
-                            IconButton(
-                              icon: Icon(Icons.remove_circle_outline),
+                            IconWidget(
+                              iconData: Icons.remove_circle_outline,
+                              color: Colors.blueAccent,
+                              size: 30,
                               onPressed: () {
                                 setState(() {
                                   int weight = int.tryParse(weightController.text) ?? 0;
                                   weightController.text = (weight - 1).toString();
                                 });
                               },
-                              iconSize: 30,
-                              color: Colors.blueAccent,
                             ),
                             Expanded(
                               child: TextField(
@@ -200,16 +267,16 @@ class _BMICalculatorState extends State<BMICalculator> {
                                 ),
                               ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.add_circle_outline),
+                            IconWidget(
+                              iconData: Icons.add_circle_outline,
+                              color: Colors.blueAccent,
+                              size: 30,
                               onPressed: () {
                                 setState(() {
                                   int weight = int.tryParse(weightController.text) ?? 0;
                                   weightController.text = (weight + 1).toString();
                                 });
                               },
-                              iconSize: 30,
-                              color: Colors.blueAccent,
                             ),
                           ],
                         ),
@@ -222,7 +289,10 @@ class _BMICalculatorState extends State<BMICalculator> {
                 Expanded(
                   child: Column(
                     children: [
-                      Text('Age', style: TextStyle(fontSize: 18)),
+                      TextWidget(
+                        text: 'Age',
+                        style: TextStyle(fontSize: 18),
+                      ),
                       SizedBox(height: 10),
                       Container(
                         padding: EdgeInsets.symmetric(vertical: 10.0),
@@ -232,16 +302,16 @@ class _BMICalculatorState extends State<BMICalculator> {
                         ),
                         child: Row(
                           children: [
-                            IconButton(
-                              icon: Icon(Icons.remove_circle_outline),
+                            IconWidget(
+                              iconData: Icons.remove_circle_outline,
+                              color: Colors.blueAccent,
+                              size: 30,
                               onPressed: () {
                                 setState(() {
                                   int age = int.tryParse(ageController.text) ?? 0;
                                   ageController.text = (age - 1).toString();
                                 });
                               },
-                              iconSize: 30,
-                              color: Colors.blueAccent,
                             ),
                             Expanded(
                               child: TextField(
@@ -254,16 +324,16 @@ class _BMICalculatorState extends State<BMICalculator> {
                                 ),
                               ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.add_circle_outline),
+                            IconWidget(
+                              iconData: Icons.add_circle_outline,
+                              color: Colors.blueAccent,
+                              size: 30,
                               onPressed: () {
                                 setState(() {
                                   int age = int.tryParse(ageController.text) ?? 0;
                                   ageController.text = (age + 1).toString();
                                 });
                               },
-                              iconSize: 30,
-                              color: Colors.blueAccent,
                             ),
                           ],
                         ),
@@ -275,33 +345,14 @@ class _BMICalculatorState extends State<BMICalculator> {
             ),
             SizedBox(height: 40),
 
-            // Bottom bar for the Calculate BMI button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: ElevatedButton(
-                onPressed: calculateBMI,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 30.0),
-                  backgroundColor: Colors.blueAccent,
-                ),
-                child: Text(
-                  'Calculate BMI',
-                  style: TextStyle(fontSize: 22),
-                ),
-              ),
+            // Calculate BMI button
+            ElevatedButton(
+              onPressed: calculateBMI,
+              child: Text('Calculate BMI'),
             ),
           ],
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    // Dispose controllers to prevent memory leaks
-    heightController.dispose();
-    weightController.dispose();
-    ageController.dispose();
-    super.dispose();
   }
 }
