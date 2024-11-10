@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- The INTERNET permission is required for development. Specifically,
          the Flutter tool needs it to communicate with the running application
@@ -7,6 +8,15 @@
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
 </manifest>
+=======
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The INTERNET permission is required for development. Specifically,
+         the Flutter tool needs it to communicate with the running application
+         to allow setting breakpoints, to provide hot reload, etc.
+    -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+</manifest>
+>>>>>>> b10d371380e30ce01dc437022236ff744e5e72a7
 =======
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- The INTERNET permission is required for development. Specifically,
