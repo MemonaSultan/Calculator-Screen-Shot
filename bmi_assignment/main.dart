@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-<<<<<<<< HEAD:bmi_assignment/lib/main.dart
-<<<<<<< HEAD
-<<<<<<<< HEAD:bmi_assignment/lib/main.dart
-<<<<<<< HEAD
+
 import 'package:flutter/material.dart';
 import 'Input page.dart';
 void main() {
@@ -21,10 +17,7 @@ class BMICalculatorApp extends StatelessWidget {
       )
     );
   }
-}
 
-
-=======
 import 'package:flutter/material.dart';
 
 void main() {
@@ -150,10 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
->>>>>>> b10d371380e30ce01dc437022236ff744e5e72a7
-========
-=======
->>>>>>> b10d371380e30ce01dc437022236ff744e5e72a7
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -279,13 +269,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-<<<<<<< HEAD
->>>>>>>> b10d371380e30ce01dc437022236ff744e5e72a7:main.dart
-=======
->>>>>>> b10d371380e30ce01dc437022236ff744e5e72a7
-========
-=======
->>>>>>> b10d371380e30ce01dc437022236ff744e5e72a7
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -411,7 +395,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-<<<<<<< HEAD
->>>>>>>> b10d371380e30ce01dc437022236ff744e5e72a7:main.dart
-=======
->>>>>>> b10d371380e30ce01dc437022236ff744e5e72a7
+
