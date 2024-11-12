@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'icontextfile.dart';
+
 const Color activeColorMale = Color(0xFF1D83C7);
 const Color activeColorFemale = Color(0xFF111328);
 const Color deactiveColor = Colors.black54;
 
 enum Gender { male, female }
+
 class IconWidget extends StatelessWidget {
   final IconData iconData;
   final Color color;
@@ -183,7 +185,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                               onPressed: () {
                                 setState(() {
                                   int height = int.tryParse(heightController.text) ?? 0;
-                                  heightController.text = (height - 1).toString();
+                                  heightController.text = (height > 0 ? height - 1 : 0).toString();
                                 });
                               },
                             ),
@@ -243,7 +245,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                               onPressed: () {
                                 setState(() {
                                   int weight = int.tryParse(weightController.text) ?? 0;
-                                  weightController.text = (weight - 1).toString();
+                                  weightController.text = (weight > 0 ? weight - 1 : 0).toString();
                                 });
                               },
                             ),
@@ -299,7 +301,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                               onPressed: () {
                                 setState(() {
                                   int age = int.tryParse(ageController.text) ?? 0;
-                                  ageController.text = (age - 1).toString();
+                                  ageController.text = (age > 0 ? age - 1 : 0).toString();
                                 });
                               },
                             ),
@@ -341,6 +343,11 @@ class _BMICalculatorState extends State<BMICalculator> {
               child: Text('Calculate BMI'),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 30.0),
+                textStyle: TextStyle(fontSize: 18),
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
               ),
             ),
           ],
@@ -348,10 +355,4 @@ class _BMICalculatorState extends State<BMICalculator> {
       ),
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: BMICalculator(),
-  ));
 }
