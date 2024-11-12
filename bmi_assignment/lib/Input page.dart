@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'icontextfile.dart';
-
-// Define constants for active and deactive colors
-const Color activeColorMale = Color(0xFF1D83C7); // Corrected color code
+const Color activeColorMale = Color(0xFF1D83C7);
 const Color activeColorFemale = Color(0xFF111328);
 const Color deactiveColor = Colors.black54;
 
-// Icon Widget Class
+enum Gender { male, female }
 class IconWidget extends StatelessWidget {
   final IconData iconData;
   final Color color;
@@ -59,11 +57,9 @@ class _BMICalculatorState extends State<BMICalculator> {
   final TextEditingController heightController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
   final TextEditingController ageController = TextEditingController();
-  String selectedGender = 'Male';
+  Gender selectedGender = Gender.male;
 
-  // Placeholder calculateBMI function
   void calculateBMI() {
-    // Add BMI calculation logic here
     print("BMI calculation executed");
   }
 
@@ -78,20 +74,19 @@ class _BMICalculatorState extends State<BMICalculator> {
         padding: const EdgeInsets.all(36.0),
         child: Column(
           children: [
-            // Gender selection with custom icons inside the boxes
             Row(
               children: [
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
                       setState(() {
-                        selectedGender = 'Male';
+                        selectedGender = Gender.male;
                       });
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
                       decoration: BoxDecoration(
-                        color: selectedGender == 'Male' ? activeColorMale : deactiveColor,
+                        color: selectedGender == Gender.male ? activeColorMale : deactiveColor,
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: Row(
@@ -99,11 +94,11 @@ class _BMICalculatorState extends State<BMICalculator> {
                         children: [
                           IconWidget(
                             iconData: Icons.male,
-                            color: selectedGender == 'Male' ? Colors.white : Colors.black,
+                            color: selectedGender == Gender.male ? Colors.white : Colors.black,
                             size: 30,
                             onPressed: () {
                               setState(() {
-                                selectedGender = 'Male';
+                                selectedGender = Gender.male;
                               });
                             },
                           ),
@@ -112,7 +107,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                             text: 'Male',
                             style: TextStyle(
                               fontSize: 22,
-                              color: selectedGender == 'Male' ? Colors.white : Colors.black,
+                              color: selectedGender == Gender.male ? Colors.white : Colors.black,
                             ),
                           ),
                         ],
@@ -125,13 +120,13 @@ class _BMICalculatorState extends State<BMICalculator> {
                   child: GestureDetector(
                     onTap: () {
                       setState(() {
-                        selectedGender = 'Female';
+                        selectedGender = Gender.female;
                       });
                     },
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
                       decoration: BoxDecoration(
-                        color: selectedGender == 'Female' ? activeColorFemale : deactiveColor,
+                        color: selectedGender == Gender.female ? activeColorFemale : deactiveColor,
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: Row(
@@ -139,11 +134,11 @@ class _BMICalculatorState extends State<BMICalculator> {
                         children: [
                           IconWidget(
                             iconData: Icons.female,
-                            color: selectedGender == 'Female' ? Colors.white : Colors.black,
+                            color: selectedGender == Gender.female ? Colors.white : Colors.black,
                             size: 30,
                             onPressed: () {
                               setState(() {
-                                selectedGender = 'Female';
+                                selectedGender = Gender.female;
                               });
                             },
                           ),
@@ -152,7 +147,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                             text: 'Female',
                             style: TextStyle(
                               fontSize: 22,
-                              color: selectedGender == 'Female' ? Colors.white : Colors.black,
+                              color: selectedGender == Gender.female ? Colors.white : Colors.black,
                             ),
                           ),
                         ],
@@ -162,9 +157,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                 ),
               ],
             ),
-            SizedBox(height: 0),
-
-            // Height input with custom increment/decrement icons inside the box
+            SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
@@ -224,9 +217,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                 ),
               ],
             ),
-            SizedBox(height: 40),
-
-            // Weight input with custom increment/decrement icons inside the box
+            SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
@@ -285,7 +276,6 @@ class _BMICalculatorState extends State<BMICalculator> {
                   ),
                 ),
                 SizedBox(width: 30),
-                // Age input with custom increment/decrement icons inside the box
                 Expanded(
                   child: Column(
                     children: [
@@ -349,10 +339,19 @@ class _BMICalculatorState extends State<BMICalculator> {
             ElevatedButton(
               onPressed: calculateBMI,
               child: Text('Calculate BMI'),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 30.0),
+              ),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+void main() {
+  runApp(MaterialApp(
+    home: BMICalculator(),
+  ));
 }
