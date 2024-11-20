@@ -7,7 +7,18 @@ class Weather extends StatefulWidget {
 class _WeatherState extends State<Weather> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('weatherapp'),
+         backgroundColor: Colors.red,
+        actions:<Widget>[
+          IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () => print('Clicked'),
+          )
+        ],
+      ),
+     );
 
   }
 }
