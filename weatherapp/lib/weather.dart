@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class Weather extends StatefulWidget {
   @override
   _WeatherState createState() => _WeatherState();
@@ -9,30 +10,46 @@ class _WeatherState extends State<Weather> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('weatherapp'),
-         backgroundColor: Colors.red,
-        actions:<Widget>[
+        title: Text(
+          'Weather App',
+            style:TextStyle(
+              color: Colors.white,
+          ),
+        ),
+
+
+        backgroundColor: Colors.black,
+        actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.menu),
+            icon: Icon(
+                Icons.menu,
+              color: Colors.white,
+            ),
             onPressed: () => print('Clicked'),
-          )
+          ),
         ],
       ),
       body: Stack(
         children: <Widget>[
           Center(
             child: Image(
-              image: AssetImage("images/umbrella.png"),
+              image: AssetImage('assets/images/umbrella.png'),
               height: 1200.0,
-              width: 590.0,
-              fit:BoxFit.fill
+              width: 1530.0,
+              fit: BoxFit.fill,
             ),
-          //  child: new Image.asset("images/umbrella.png"),
-          )
+          ),
+          // Corrected Container widget
+          Container(
+            alignment: Alignment.topRight,
+            margin: EdgeInsets.fromLTRB(0.0, 10.9, 20.9, 0.0),
+            child: Text('Vehari',
+                style: TextStyle(color: Colors.white,
+                    fontSize: 24,fontStyle:  FontStyle.italic)),
 
+          ),
         ],
       ),
-     );
-
+    );
   }
 }
