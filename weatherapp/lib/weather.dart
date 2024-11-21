@@ -48,6 +48,24 @@ class _WeatherState extends State<Weather> {
                     fontSize: 24,fontStyle:  FontStyle.italic)),
 
           ),
+          Center(
+            child: Image(
+              image: AssetImage('assets/images/raindrops.png'),
+              width: 200.0,
+              height: 200.0,
+
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.fromLTRB(30.0,140.0,0.0,0.0),
+            alignment: Alignment.center,
+            child: Text(
+              '50.32F',
+                  style:TextStyle(color:Colors.white,
+                  fontSize: 24,fontStyle: FontStyle.italic,fontFamily: 'Arial',fontWeight: FontWeight.bold)
+            ),
+          )
+
         ],
       ),
     );
