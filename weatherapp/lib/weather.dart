@@ -62,7 +62,7 @@ class _WeatherState extends State<Weather> {
             child: Text(
               '50.32F',
                   style:TextStyle(color:Colors.white,
-                  fontSize: 24,fontStyle: FontStyle.italic,fontFamily: 'Arial',fontWeight: FontWeight.bold)
+                  fontSize: 44,fontStyle: FontStyle.italic,fontFamily: 'Arial',fontWeight: FontWeight.bold)
             ),
           )
 
